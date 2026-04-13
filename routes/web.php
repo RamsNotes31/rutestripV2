@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\RouteController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\UserController;
@@ -34,6 +35,12 @@ Route::delete('/routes/{route}', [RouteController::class, 'destroy'])
 
 // Search
 Route::get('/search', [SearchController::class, 'index'])->name('search.index');
+
+// RAG Chatbot
+Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
+Route::post('/chat/send', [ChatController::class, 'send'])->name('chat.send');
+Route::get('/chat/new', [ChatController::class, 'newSession'])->name('chat.new');
+Route::get('/chat/history', [ChatController::class, 'history'])->name('chat.history');
 Route::post('/search', [SearchController::class, 'search'])->name('search.submit');
 
 // Documentation

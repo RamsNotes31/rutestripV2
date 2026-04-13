@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <!-- Background circle -->
+  <rect width="48" height="48" rx="12" fill="url(#grad)"/>
+  
+  <!-- Mountain shape -->
+  <path d="M10 36L19 16L24 24L28 18L38 36H10Z" fill="white" fill-opacity="0.95"/>
+  
+  <!-- Mountain shadow -->
+  <path d="M19 16L24 24L22 28L14 36H10L19 16Z" fill="white" fill-opacity="0.7"/>
+  
+  <!-- Trail/path line -->
+  <path d="M16 36C18 32 20 30 22 28C24 26 26 25 28 28C30 31 32 33 34 36" 
+        stroke="#059669" stroke-width="2" stroke-linecap="round" fill="none"/>
+  
+  <!-- Sun -->
+  <circle cx="35" cy="14" r="4" fill="#FCD34D" fill-opacity="0.9"/>
+  
+  <!-- Snow cap -->
+  <path d="M17.5 19L19 16L20.5 19" fill="white" stroke="white" stroke-width="0.5"/>
+  
+  <defs>
+    <linearGradient id="grad" x1="0" y1="0" x2="48" y2="48">
+      <stop offset="0%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#0D9488"/>
+    </linearGradient>
+  </defs>
+</svg>

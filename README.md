@@ -1,22 +1,31 @@
-# 🏔️ RuteStrip - Sistem Rekomendasi Jalur Pendakian
+# 🏔️ RuteStrip V2 - Sistem Rekomendasi & AI Chatbot Jalur Pendakian
 
-> Sistem rekomendasi jalur pendakian gunung berbasis **Content-Based Filtering** dengan **SBERT** (Sentence-BERT) dan **Cosine Similarity**.
+> Sistem informasi jalur pendakian gunung yang dilengkapi dengan **Rekomendasi Berbasis AI (SBERT Content-Based Filtering)** dan **RAG (Retrieval-Augmented Generation) Chatbot** menggunakan integrasi Google Gemini.
 
 ![Laravel](https://img.shields.io/badge/Laravel-11-red?logo=laravel)
 ![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python)
 ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.x-cyan?logo=tailwindcss)
+![Gemini](https://img.shields.io/badge/Google_Gemini-3.1_Flash_Lite-purple?logo=googlebard)
 
 ---
 
 ## 📋 Fitur Utama
 
-### 🔍 Pencarian Semantik dengan SBERT
+### 🤖 Full-Screen RAG AI Chatbot (NEW in V2)
+
+-   Assisten pendakian cerdas terintegrasi Google Gemini AI
+-   Menggunakan arsitektur **Retrieval-Augmented Generation (RAG)**
+-   Menjawab berdasarkan **konteks basis data rute nyata**, minimal halusinasi
+-   Respons dinamis dengan multi-turn session persistence
+-   Desain UI layar penuh dengan branding pendakian gunung yang imersif
+
+### 🔍 Pencarian Semantik & Rekomendasi
 
 -   Pencarian berdasarkan **deskripsi natural language**
 -   Model: `paraphrase-multilingual-MiniLM-L12-v2` (384 dimensi)
 -   Preprocessing: Case folding, stopword removal (selektif), normalisasi
 -   **Cosine Similarity** untuk ranking hasil pencarian
--   Waktu respons ditampilkan dalam milidetik
+-   Waktu respons (retrieval) ditampilkan dalam milidetik
 
 ### 📊 Ekstraksi Fitur dari GPX
 
@@ -65,6 +74,7 @@
 | -------- | -------------------------------- |
 | Backend  | Laravel 11 (PHP 8.2+)            |
 | ML/NLP   | Python 3.11, SBERT, scikit-learn |
+| Generative AI | Google Gemini API (google-generativeai) |
 | Frontend | Blade, TailwindCSS, Alpine.js    |
 | Database | MySQL                            |
 | Maps     | Leaflet.js + OpenStreetMap       |
@@ -90,7 +100,7 @@ composer install
 npm install && npm run build
 
 # Python
-pip install sentence-transformers scikit-learn gpxpy numpy
+pip install sentence-transformers scikit-learn gpxpy numpy google-generativeai
 ```
 
 ### 3. Environment Setup
@@ -106,6 +116,10 @@ Edit `.env`:
 DB_DATABASE=rutestrip
 DB_USERNAME=root
 DB_PASSWORD=
+
+# Gemini API untuk RAG Chatbot
+GEMINI_API_KEY=your_gemini_api_key_here
+GEMINI_MODEL=gemini-3.1-flash-lite-preview
 ```
 
 ### 4. Database
@@ -187,16 +201,25 @@ rutestrip/
 └─────────────┘     └──────────────┘     └─────────────┘
                            │
                            ▼
+```
 ┌─────────────┐     ┌──────────────┐     ┌─────────────┐
-│   Query     │────▶│    SBERT     │────▶│   Cosine    │
-│   User      │     │  Embedding   │     │  Similarity │
+│  Query User │────▶│    SBERT     │────▶│   Cosine    │
+│  (Chatbot)  │     │  Embedding   │     │  Similarity │
 └─────────────┘     └──────────────┘     └─────────────┘
-                                                │
-                                                ▼
-                                         ┌─────────────┐
-                                         │   Ranked    │
-                                         │   Results   │
-                                         └─────────────┘
+                           │                    │
+                 (Chat History)                 ▼
+                           │             ┌─────────────┐
+                           ▼             │   Retrieved │
+                    ┌──────────────┐◀────│   Context   │
+                    │  Augmented   │     └─────────────┘
+                    │   Prompt     │
+                    └──────────────┘
+                           │
+                           ▼
+                    ┌──────────────┐
+                    │ Gemini Flash │
+                    │  Generation  │
+                    └──────────────┘
 ```
 
 ---
@@ -226,13 +249,14 @@ Grade = (Elevasi Gain / Jarak) × 100%
 
 ## 🗓️ Changelog
 
-### v2.0.0 (2025-12-19)
+### v2.0.0 (2026-04-14)
 
--   ✨ User authentication (login/register)
--   ✨ Separate admin & user login pages
+-   🚀 **RAG Chatbot Integration**: AI Assisten cerdas dengan SBERT & Google Gemini
+-   ✨ UI Chatbot layar penuh (full-screen) dengan micro-animations
+-   🎨 Desain ulang sistem logo dengan aset berbasis gunung/hiker
+-   💾 Session tracking untuk `ChatMessage` (DB schema baru)
+-   ⚡ Refaktor command integration antara PHP & Python
 -   ✨ User dashboard dengan favorit & riwayat
--   ✨ Info basecamp (harga, alamat, fasilitas)
--   ⚡ Optimasi pencarian (PHP cosine + caching)
 -   🗺️ Mini map di rekomendasi serupa
 
 ### v1.0.0 (2025-12-18)
