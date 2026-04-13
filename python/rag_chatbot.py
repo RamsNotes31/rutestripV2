@@ -158,17 +158,36 @@ def retrieve_relevant_routes(query: str, routes_data: list, top_k: int = 5) -> l
 
 
 def get_weather_info(lat: float, lng: float) -> str:
-    """Fetch realtime weather from Open-Meteo API"""
+    """Fetch realtime weather from Open-Meteo API with caching (1 hour)"""
     if not lat or not lng:
         return ""
     try:
         import urllib.request
         import json
+        import os
+        import time
+
+        cache_file = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'storage', 'app', 'weather_cache.json')
+        cache_key = f"{lat:.4f}_{lng:.4f}"
+        
+        # Read Cache
+        if os.path.exists(cache_file):
+            try:
+                with open(cache_file, 'r') as f:
+                    cache_data = json.load(f)
+                if cache_key in cache_data and (time.time() - cache_data[cache_key]['timestamp'] < 3600):
+                    return cache_data[cache_key]['data']
+            except json.JSONDecodeError:
+                cache_data = {}
+        else:
+            cache_data = {}
+
+        # Fetch new data
         url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lng}&current=temperature_2m,weather_code,wind_speed_10m&timezone=auto"
         req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
         with urllib.request.urlopen(req, timeout=3) as response:
-            data = json.loads(response.read())
-            curr = data.get('current', {})
+            api_res = json.loads(response.read())
+            curr = api_res.get('current', {})
             temp = curr.get('temperature_2m', 'N/A')
             wind = curr.get('wind_speed_10m', 'N/A')
             code = curr.get('weather_code', 0)
@@ -182,7 +201,14 @@ def get_weather_info(lat: float, lng: float) -> str:
             elif code in [80, 81, 82]: w_desc = "Hujan Deras"
             elif code >= 95: w_desc = "Badai Petir"
             
-            return f"{w_desc}, Suhu: {temp}°C, Angin: {wind} km/h"
+            result_str = f"{w_desc}, Suhu: {temp}°C, Angin: {wind} km/h"
+            
+            # Write to cache
+            cache_data[cache_key] = {'data': result_str, 'timestamp': time.time()}
+            with open(cache_file, 'w') as f:
+                json.dump(cache_data, f)
+                
+            return result_str
     except Exception as e:
         return ""
 
