@@ -98,6 +98,8 @@ class ChatController extends Controller
                     'average_grade_pct'      => $route->average_grade_pct,
                     'basecamp_name'          => $route->basecamp_name,
                     'basecamp_address'       => $route->basecamp_address,
+                    'basecamp_lat'           => $route->basecamp_lat,
+                    'basecamp_lng'           => $route->basecamp_lng,
                     'entry_fee'              => $route->entry_fee,
                     'facilities'             => $route->facilities,
                     'best_season'            => $route->best_season,

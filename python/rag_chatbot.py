@@ -143,6 +143,8 @@ def retrieve_relevant_routes(query: str, routes_data: list, top_k: int = 5) -> l
             'average_grade_pct': route.get('average_grade_pct'),
             'basecamp_name': route.get('basecamp_name', ''),
             'basecamp_address': route.get('basecamp_address', ''),
+            'basecamp_lat': route.get('basecamp_lat'),
+            'basecamp_lng': route.get('basecamp_lng'),
             'entry_fee': route.get('entry_fee', ''),
             'facilities': route.get('facilities', ''),
             'best_season': route.get('best_season', ''),
@@ -153,6 +155,36 @@ def retrieve_relevant_routes(query: str, routes_data: list, top_k: int = 5) -> l
     # Sort by similarity (descending) and take top_k
     scored_routes.sort(key=lambda x: x['similarity_score'], reverse=True)
     return scored_routes[:top_k]
+
+
+def get_weather_info(lat: float, lng: float) -> str:
+    """Fetch realtime weather from Open-Meteo API"""
+    if not lat or not lng:
+        return ""
+    try:
+        import urllib.request
+        import json
+        url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lng}&current=temperature_2m,weather_code,wind_speed_10m&timezone=auto"
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=3) as response:
+            data = json.loads(response.read())
+            curr = data.get('current', {})
+            temp = curr.get('temperature_2m', 'N/A')
+            wind = curr.get('wind_speed_10m', 'N/A')
+            code = curr.get('weather_code', 0)
+            
+            w_desc = "Cerah"
+            if code in [1, 2, 3]: w_desc = "Cerah Berawan"
+            elif code in [45, 48]: w_desc = "Berkabut"
+            elif code in [51, 53, 55, 56, 57]: w_desc = "Gerimis"
+            elif code in [61, 63, 65, 66, 67]: w_desc = "Hujan"
+            elif code in [71, 73, 75, 77]: w_desc = "Salju"
+            elif code in [80, 81, 82]: w_desc = "Hujan Deras"
+            elif code >= 95: w_desc = "Badai Petir"
+            
+            return f"{w_desc}, Suhu: {temp}°C, Angin: {wind} km/h"
+    except Exception as e:
+        return ""
 
 
 def build_augmented_prompt(query: str, retrieved_routes: list, chat_history: list = None) -> str:
@@ -196,6 +228,15 @@ def build_augmented_prompt(query: str, retrieved_routes: list, chat_history: lis
             parts.append(f"  Musim terbaik: {route['best_season']}")
         if route.get('tips'):
             parts.append(f"  Tips: {route['tips']}")
+            
+        # Add realtime weather if coordinates exist
+        lat = route.get('basecamp_lat')
+        lng = route.get('basecamp_lng')
+        if lat and lng:
+            weather = get_weather_info(lat, lng)
+            if weather:
+                parts.append(f"  Cuaca Basecamp Saat Ini (Real-time): {weather}")
+                
         parts.append(f"  Skor kemiripan: {route['similarity_score']}")
         
         context_parts.append('\n'.join(parts))
@@ -228,7 +269,8 @@ ATURAN:
 6. Jika user bertanya rekomendasi, jelaskan mengapa jalur tersebut cocok
 7. Selalu prioritaskan keselamatan pendaki dalam rekomendasi
 8. Format jawaban dengan bullet points atau numbering jika memuat banyak info
-9. Jangan mengarang informasi yang tidak ada dalam data"""
+9. Jangan mengarang informasi yang tidak ada dalam data
+10. Jika terdapat informasi Cuaca Basecamp Saat Ini, sebutkan dan berikan peringatan/saran yang sesuai dengan cuaca tersebut"""
 
     prompt = f"""{system_prompt}
 
